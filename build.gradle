@@ -52,6 +52,11 @@ repositories {
         name = "DaPorkchop_"
         url = "https://maven.daporkchop.net/"
     }
+    maven {
+        name 'm2-dv8tion'
+        url 'https://m2.dv8tion.net/releases'
+    }
+    mavenCentral()
 }
 
 configurations {
@@ -60,6 +65,11 @@ configurations {
 }
 
 dependencies {
+    shade ('net.dv8tion:JDA:4.2.1_253') {
+        exclude module: 'slf4j'
+        exclude module: 'opus-java'
+    }
+
     shade "net.daporkchop.lib:gui:$porklibVersion"
     shade "net.daporkchop.lib:hash:$porklibVersion"
     shade "net.daporkchop.lib:logging:$porklibVersion"

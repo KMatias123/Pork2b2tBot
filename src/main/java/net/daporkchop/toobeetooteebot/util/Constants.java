@@ -105,15 +105,18 @@ public class Constants {
     public final JsonParser JSON_PARSER = new JsonParser();
     public final Gson       GSON        = new GsonBuilder().setPrettyPrinting().create();
 
-    public final DefaultLogger DEFAULT_LOG   = Logging.logger;
-    public final Logger        AUTH_LOG      = DEFAULT_LOG.channel("Auth");
-    public final Logger        CACHE_LOG     = DEFAULT_LOG.channel("Cache");
-    public final Logger        CLIENT_LOG    = DEFAULT_LOG.channel("Client");
-    public final Logger        CHAT_LOG      = DEFAULT_LOG.channel("Chat");
-    public final Logger        GUI_LOG       = DEFAULT_LOG.channel("GUI");
-    public final Logger        MODULE_LOG    = DEFAULT_LOG.channel("Module");
-    public final Logger        SERVER_LOG    = DEFAULT_LOG.channel("Server");
-    public final Logger        WEBSOCKET_LOG = DEFAULT_LOG.channel("WebSocket");
+    public final DefaultLogger DEFAULT_LOG         = Logging.logger;
+    public final Logger        AUTH_LOG            = DEFAULT_LOG.channel("Auth");
+    public final Logger        CACHE_LOG           = DEFAULT_LOG.channel("Cache");
+    public final Logger        CLIENT_LOG          = DEFAULT_LOG.channel("Client");
+    public final Logger        CHAT_LOG            = DEFAULT_LOG.channel("Chat");
+    public final Logger        GUI_LOG             = DEFAULT_LOG.channel("GUI");
+    public final Logger        MODULE_LOG          = DEFAULT_LOG.channel("Module");
+    public final Logger        SERVER_LOG          = DEFAULT_LOG.channel("Server");
+    public final Logger        WEBSOCKET_LOG       = DEFAULT_LOG.channel("WebSocket");
+    public final Logger        COMMAND_LOG         = DEFAULT_LOG.channel("Command");
+    public final Logger        DISCORD_BOT_LOG     = DEFAULT_LOG.channel("DiscordBot");
+    public final Logger        DISCORD_BOT_COMMAND = DEFAULT_LOG.channel("DiscordBotCommand");
 
     public final File CONFIG_FILE = new File("config.json");
 

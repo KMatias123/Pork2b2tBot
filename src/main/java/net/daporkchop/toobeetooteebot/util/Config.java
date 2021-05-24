@@ -51,6 +51,8 @@ public final class Config {
             public AutoReconnect autoReconnect = new AutoReconnect();
             public AutoRespawn autoRespawn = new AutoRespawn();
             public Spammer spammer = new Spammer();
+            public DiscordBot discordBot = new DiscordBot();
+            public AutoDisconnect autoDisconnect = new AutoDisconnect();
 
             public static final class AntiAFK {
                 public Actions actions = new Actions();
@@ -84,6 +86,44 @@ public final class Config {
                         "https://pepsi.team",
                         "https://daporkchop.net"
                 );
+            }
+
+            public static final class AutoDisconnect {
+                public float health = 10f;
+                public boolean enabled = false;
+            }
+
+            public static final class DiscordBot {
+                public Login login = new Login();
+                public MessageSendingBehaviour messageSendingBehaviour = new MessageSendingBehaviour();
+                public DiscordCommands discordCommands = new DiscordCommands();
+                public String prefix = "!";
+
+                public static final class Login {
+                    public String discordToken = "123";
+                }
+                public static final class MessageSendingBehaviour {
+                    public boolean onLogin = true;
+                    public boolean onChat = true;
+                    public boolean onKick = true;
+                    public boolean onDeath = true;
+                    public boolean reconnectTimer = true;
+
+                    public List<String> guildChannelsToSendLog = Arrays.asList(
+                        "846413535461769269"
+                    );
+                }
+                public static final class DiscordCommands {
+                    public WhiteList whiteList = new WhiteList();
+                    public boolean enabled = false;
+                    public static final class WhiteList {
+                        public boolean enabled = false;
+                        public List<String> whitelist = Arrays.asList(
+                            "726799254021996565",
+                            "226975061880471552"
+                        );
+                    }
+                }
             }
         }
 

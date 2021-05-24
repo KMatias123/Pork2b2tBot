@@ -39,8 +39,10 @@ import com.github.steveice10.packetlib.Server;
 import com.github.steveice10.packetlib.SessionFactory;
 import lombok.Getter;
 import lombok.Setter;
+import net.daporkchop.lib.minecraft.text.parser.AutoMCFormatParser;
 import net.daporkchop.toobeetooteebot.client.PorkClientSession;
 import net.daporkchop.toobeetooteebot.commands.Manager;
+import net.daporkchop.toobeetooteebot.discord.DiscordBot;
 import net.daporkchop.toobeetooteebot.gui.Gui;
 import net.daporkchop.toobeetooteebot.mc.PorkSessionFactory;
 import net.daporkchop.toobeetooteebot.server.PorkServerConnection;
@@ -66,6 +68,7 @@ import static net.daporkchop.toobeetooteebot.util.Constants.*;
  */
 @Getter
 public class Bot {
+
     @Getter
     protected static Bot instance;
 
@@ -79,6 +82,7 @@ public class Bot {
     @Setter
     protected BufferedImage serverIcon;
     protected final AtomicReference<PorkServerConnection> currentPlayer = new AtomicReference<>();
+    protected DiscordBot discordBot;
 
     private int reconnectCounter;
     protected final Gui gui = new Gui();
@@ -101,6 +105,9 @@ public class Bot {
     public void start() {
         try {
             commandManager.init();
+            discordBot = new DiscordBot();
+            discordBot.init();
+
             this.gui.start();
             {
                 Thread mainThread = Thread.currentThread();
@@ -117,7 +124,11 @@ public class Bot {
                     if (this.isConnected()) {
                         this.client.getSession().disconnect("user disconnect");
                     }
+
+
+                    DEFAULT_LOG.info("Killing main thread...");
                     mainThread.interrupt();
+                    DEFAULT_LOG.success("Main thread killed!");
                 }, "Pork2b2tBot command processor thread");
                 commandReaderThread.setDaemon(true);
                 commandReaderThread.start();
@@ -182,19 +193,19 @@ public class Bot {
                 moduleRunnerThread.setDaemon(true);
                 moduleRunnerThread.start();
             }
-            if (CONFIG.server.extra.timeout.enable){
+            if (CONFIG.server.extra.timeout.enable) {
                 long millis = CONFIG.server.extra.timeout.millis;
                 long interval = CONFIG.server.extra.timeout.interval;
                 Thread timeoutThread = new Thread(() -> {
                     try {
-                        while (true)    {
+                        while (true) {
                             Thread.sleep(interval);
                             PorkServerConnection currentPlayer = this.currentPlayer.get();
-                            if (currentPlayer != null && currentPlayer.isConnected() && System.currentTimeMillis() - currentPlayer.getLastPacket() >= millis)  {
+                            if (currentPlayer != null && currentPlayer.isConnected() && System.currentTimeMillis() - currentPlayer.getLastPacket() >= millis) {
                                 currentPlayer.disconnect("Timed out");
                             }
                         }
-                    } catch (InterruptedException e)    {
+                    } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
                 });
@@ -211,12 +222,20 @@ public class Bot {
 
                 saveConfig();
                 //wait for client to disconnect before starting again
-                CLIENT_LOG.info("Disconnected. Reason: %s", ((PorkClientSession) this.client.getSession()).getDisconnectReason());
+                String disconnectReason = AutoMCFormatParser.DEFAULT.parse(((PorkClientSession) this.client.getSession()).getDisconnectReason()).toRawString();
+
+                CLIENT_LOG.info("Disconnected. Reason: %s", disconnectReason);
+                discordBot.kick("[Disconnected] " + disconnectReason);
             } while (SHOULD_RECONNECT && CACHE.reset(true) && this.delayBeforeReconnect());
         } catch (Exception e) {
             DEFAULT_LOG.alert(e);
         } finally {
             DEFAULT_LOG.info("Shutting down...");
+            if (discordBot.jda != null) {
+                DISCORD_BOT_LOG.info("Shutting down the discord bot...");
+                discordBot.jda.shutdownNow();
+                DISCORD_BOT_LOG.success("Discord bot shutdown!");
+            }
             if (this.server != null) {
                 this.server.close(true);
             }
@@ -237,6 +256,7 @@ public class Bot {
             CLIENT_LOG.info("Connecting to %s:%d...", address, port);
             this.client = new Client(address, port, this.protocol, this.sessionFactory);
             this.client.getSession().connect(true);
+            discordBot.onJoin("[Connection] Connecting to " + address + ":" + port);
         }
     }
 
@@ -346,6 +366,7 @@ public class Bot {
             }
             for (int i = countdown; SHOULD_RECONNECT && i > 0; i--) {
                 CLIENT_LOG.info("Reconnecting in %d", i);
+                discordBot.connectingIn("[AutoReconnect] Reconnecting in " + i);
                 Thread.sleep(1000L);
             }
             return true;

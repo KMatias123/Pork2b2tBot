@@ -23,7 +23,7 @@ package net.daporkchop.toobeetooteebot.client.handler.incoming;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.text.parser.AutoMCFormatParser;
-import net.daporkchop.lib.minecraft.text.parser.MCFormatParser;
+import net.daporkchop.toobeetooteebot.Bot;
 import net.daporkchop.toobeetooteebot.client.PorkClientSession;
 import net.daporkchop.toobeetooteebot.util.handler.HandlerRegistry;
 
@@ -36,11 +36,16 @@ public class ChatHandler implements HandlerRegistry.IncomingHandler<ServerChatPa
     @Override
     public boolean apply(@NonNull ServerChatPacket packet, @NonNull PorkClientSession session) {
         CHAT_LOG.info(packet.getMessage());
+
+        String rawMessage = AutoMCFormatParser.DEFAULT.parse(packet.getMessage()).toRawString();
+
         if ("2b2t.org".equals(CONFIG.client.server.address)
-            && AutoMCFormatParser.DEFAULT.parse(packet.getMessage()).toRawString().toLowerCase().startsWith("Exception Connecting:".toLowerCase()))    {
+            && rawMessage.toLowerCase().startsWith("Exception Connecting:".toLowerCase()))    {
             CLIENT_LOG.error("2b2t's queue is broken as per usual, disconnecting to avoid being stuck forever");
             session.disconnect("heck");
         }
+
+        Bot.getInstance().getDiscordBot().chat("[Chat] " + rawMessage);
         WEBSOCKET_SERVER.fireChat(packet.getMessage());
         return true;
     }

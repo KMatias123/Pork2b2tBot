@@ -2,6 +2,7 @@ package net.daporkchop.toobeetooteebot.commands;
 
 import lombok.Getter;
 import net.daporkchop.toobeetooteebot.commands.Commands.ChatCommand;
+import net.daporkchop.toobeetooteebot.commands.Commands.ExitCommand;
 import net.daporkchop.toobeetooteebot.commands.Commands.HelpCommand;
 import net.daporkchop.toobeetooteebot.util.Constants;
 
@@ -27,6 +28,7 @@ public class Manager {
     public void init() {
         commands.add(new HelpCommand());
         commands.add(new ChatCommand());
+        commands.add(new ExitCommand());
     }
 
     public void executeCommand(final String commandString) {

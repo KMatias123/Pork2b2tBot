@@ -44,13 +44,26 @@ public class PlayerHealthHandler implements HandlerRegistry.IncomingHandler<Serv
         CACHE_LOG.debug("Player food: %d", packet.getFood())
                 .debug("Player saturation: %f", packet.getSaturation())
                 .debug("Player health: %f", packet.getHealth());
-        if (packet.getHealth() <= 0 && CONFIG.client.extra.autoRespawn.enabled)  {
-            new Thread(() -> {
-                PorkUtil.sleep(CONFIG.client.extra.autoRespawn.delayMillis);
-                if (Bot.getInstance().isConnected() && CACHE.getPlayerCache().getThePlayer().getHealth() <= 0)    {
-                    Bot.getInstance().getClient().getSession().send(new ClientRequestPacket(ClientRequest.RESPAWN));
-                }
-            }).start();
+
+        if (CONFIG.client.extra.autoDisconnect.enabled && CONFIG.client.extra.autoDisconnect.health > packet.getHealth()) {
+            Bot.getInstance().getClient().getSession().disconnect("Low health");
+        }
+
+
+        if (packet.getHealth() <= 0) {
+
+            if (CONFIG.client.extra.autoRespawn.enabled) {
+                Bot.getInstance().getDiscordBot().onDeath("[Death] I just died");
+                new Thread(() -> {
+                    PorkUtil.sleep(CONFIG.client.extra.autoRespawn.delayMillis);
+                    if (Bot.getInstance().isConnected() && CACHE.getPlayerCache().getThePlayer().getHealth() <= 0) {
+                        Bot.getInstance().getClient().getSession().send(new ClientRequestPacket(ClientRequest.RESPAWN));
+                    }
+                }).start();
+            } else {
+                Bot.getInstance().getDiscordBot().onDeath("[Death] I just died");
+                Bot.getInstance().getClient().getSession().disconnect("death");
+            }
         }
         return true;
     }
