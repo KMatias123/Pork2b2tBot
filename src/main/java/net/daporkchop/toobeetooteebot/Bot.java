@@ -40,6 +40,7 @@ import com.github.steveice10.packetlib.SessionFactory;
 import lombok.Getter;
 import lombok.Setter;
 import net.daporkchop.toobeetooteebot.client.PorkClientSession;
+import net.daporkchop.toobeetooteebot.commands.Manager;
 import net.daporkchop.toobeetooteebot.gui.Gui;
 import net.daporkchop.toobeetooteebot.mc.PorkSessionFactory;
 import net.daporkchop.toobeetooteebot.server.PorkServerConnection;
@@ -53,17 +54,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Proxy;
 import java.net.URL;
-import java.util.ArrayDeque;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Scanner;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import static net.daporkchop.toobeetooteebot.util.Constants.*;
 
@@ -77,6 +71,7 @@ public class Bot {
 
     protected final SessionFactory sessionFactory = new PorkSessionFactory(this);
     //protected final Collection<PorkServerConnection> serverConnections = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    protected final Manager commandManager = new Manager();
     protected MinecraftProtocol protocol;
     protected Client client;
     protected Server server;
@@ -87,6 +82,8 @@ public class Bot {
 
     private int reconnectCounter;
     protected final Gui gui = new Gui();
+
+    public boolean shuttingDown = false;
 
     public static void main(String... args) {
         DEFAULT_LOG.info("Starting Pork2b2tBot v%s...", VERSION);
@@ -103,22 +100,18 @@ public class Bot {
 
     public void start() {
         try {
+            commandManager.init();
             this.gui.start();
             {
                 Thread mainThread = Thread.currentThread();
                 Thread commandReaderThread = new Thread(() -> {
                     try (Scanner s = new Scanner(System.in)) {
-                        long lastPress = 0L;
-                        while (true)    {
-                            s.nextLine(); //TODO: command processing from CLI
-                            long now = System.currentTimeMillis();
-                            if (lastPress + 10000L >= now)  {
-                                break;
-                            } else {
-                                DEFAULT_LOG.info("Are you sure you want to stop the bot? Press enter again to confirm.");
-                                lastPress = now;
-                            }
-                        }
+                        do {
+                            String input = s.nextLine();
+
+                            commandManager.executeCommand(input);
+
+                        } while (!shuttingDown);
                     }
                     SHOULD_RECONNECT = false;
                     if (this.isConnected()) {
